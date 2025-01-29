@@ -34,7 +34,7 @@ def getMessageLatency(orig, dest, wrap=True):
         lat = LATENCY_TABLE.get(orig).get(dest, 0)
     # print 'LATENCY_DRIFT: ', LATENCY_DRIFT
     if LATENCY_DRIFT and LATENCY_DRIFT != 0:
-        raise NotImplementedError, "TODO"
+        raise NotImplementedError("TODO")
     # lat = int(random.randim( lat - (lat * LATENCY_DRIFT  ), lat + (lat * LATENCY_DRIFT    ) ) )
 
     return lat
@@ -47,7 +47,7 @@ def getNumberEvents():
 def setMessageLoss(rate):
     global messageLoss, send, messagesDropped, messagesSent, messagesTotal
 
-    print 'setting message loss to: ', rate
+    print('setting message loss to: ', rate)
     messagesDropped = messagesSent = messagesTotal = 0
     messageLoss = rate
     send = sendLossy
@@ -82,16 +82,16 @@ def sendReliable(f, *p):
             ts = timestamp + lat
             heapq.heappush(queue, (ts, (f, p)))
     except Exception as e:
-        print p[1]
-        print p[0]
-        print e
+        print(p[1])
+        print(p[0])
+        print(e)
         orig_stdout = sys.stdout
         a = open('error.log', 'w')
         sys.stdout = a
 
-        print p[1]
-        print p[0]
-        print e
+        print(p[1])
+        print(p[0])
+        print(e)
 
         sys.stdout = orig_stdout
         a.close()
@@ -133,10 +133,10 @@ def run():
                 # timestamp,(f,p) = values
                 timestamp, (f, p) = heapq.heappop(queue)
             except IndexError as e:
-                print 'empty queue'
+                print('empty queue')
                 break
 
-            apply(f, p)
+            f(*p)
         # cnt+=1
         # if cnt%1000==0:
         # 	logger.info(" {} events queued \t {} events done\t timestamp: %d           ".format(len(queue),cnt,timestamp))
@@ -147,19 +147,19 @@ def run():
         a = open('error.log', 'w')
         sys.stdout = a
 
-        print "error:", e, " error-message:", ex_type, ex
+        print("error:", e, " error-message:", ex_type, ex)
         stack = traceback.extract_tb(tb)
         for str in stack:
-            print str
-        print 'Executed: %d events' % (cnt)
+            print(str)
+        print('Executed: %d events' % (cnt))
 
         sys.stdout = orig_stdout
         a.close()
 
-        print "error:", e, " error-message:", ex_type, ex
+        print("error:", e, " error-message:", ex_type, ex)
         traceback.print_tb(tb)
         #print "queue", queue
-        print 'Executed: %d events' % (cnt)
+        print('Executed: %d events' % (cnt))
         sys.exit(10)
 
 

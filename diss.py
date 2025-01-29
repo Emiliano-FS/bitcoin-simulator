@@ -1,7 +1,6 @@
 # Sample simulator demo
 # Miguel Matos - miguel.marques.matos@tecnico.ulisboa.pt
 # (c) 2012-2018
-from __future__ import division
 
 import ast
 import csv
@@ -16,7 +15,7 @@ import sys
 import os
 
 import yaml
-import cPickle
+import pickle
 import logging
 import numpy
 from sim import sim
@@ -123,10 +122,10 @@ def improve_performance(cycle):
     if cycle % 600 != 0 or cycle == 0:
         return
 
-    for i in xrange(len(blocks_created)):
+    for i in range(len(blocks_created)):
         if blocks_created[i][BLOCK_HEIGHT] + 2 < highest_block and not isinstance(blocks_created[i][BLOCK_TX], int):
             for tx in blocks_created[i][BLOCK_TX]:
-                for myself in xrange(nb_nodes):
+                for myself in range(nb_nodes):
                     if tx in nodeState[myself][NODE_INV][NODE_INV_RECEIVED_TX]:
                         del nodeState[myself][NODE_INV][NODE_INV_RECEIVED_TX][tx]
                     if tx in nodeState[myself][NODE_MEMPOOL]:
@@ -169,12 +168,12 @@ def CYCLE(myself):
 
     # Change miners during simulation simulation
 #    if myself == 0 and nodeState[myself][CURRENT_CYCLE] == 61200:
-#        miners = random.sample(xrange(nb_nodes), 5)
+#        miners = random.sample(range(nb_nodes), 5)
 #        for i in range(0, 2):
 #            miners.pop()
-#        nodes_to_append = random.sample(xrange(nb_nodes), 2)
+#        nodes_to_append = random.sample(range(nb_nodes), 2)
 #        while nodes_to_append in miners:
-#            nodes_to_append = random.sample(xrange(nb_nodes), 2)
+#            nodes_to_append = random.sample(range(nb_nodes), 2)
 #        for node in nodes_to_append:
 #           miners.append(node)
 
@@ -1117,7 +1116,7 @@ def save_network():
     with open('networks/{}-{}-{}'.format(nb_nodes - (number_of_miners * extra_replicas), number_of_miners, extra_replicas), 'w') \
             as file_to_write:
         file_to_write.write("{} {} {}\n".format(nb_nodes, number_of_miners, extra_replicas))
-        for n in xrange(nb_nodes):
+        for n in range(nb_nodes):
             file_to_write.write(str(nodeState[n][NODE_NEIGHBOURHOOD]) + '\n')
         file_to_write.write(str(miners) + '\n')
 
@@ -1133,7 +1132,7 @@ def load_network(filename):
         nb_nodes, number_of_miners, extra_replicas = first_line.split()
         nb_nodes, number_of_miners, extra_replicas = int(nb_nodes), int(number_of_miners), int(extra_replicas)
         nodeState = defaultdict()
-        for n in xrange(nb_nodes):
+        for n in range(nb_nodes):
             nodeState[n] = createNode(ast.literal_eval(file_to_read.readline()))
         miners = ast.literal_eval(file_to_read.readline())
 
@@ -1180,13 +1179,13 @@ def create_nodes_and_miners(neighbourhood_size):
     global nodeState, miners
 
     nodeState = defaultdict()
-    for n in xrange(nb_nodes):
-        neighbourhood = random.sample(xrange(nb_nodes), neighbourhood_size)
+    for n in range(nb_nodes):
+        neighbourhood = random.sample(range(nb_nodes), neighbourhood_size)
         while neighbourhood.__contains__(n):
-            neighbourhood = random.sample(xrange(nb_nodes), neighbourhood_size)
+            neighbourhood = random.sample(range(nb_nodes), neighbourhood_size)
         nodeState[n] = createNode(neighbourhood)
 
-    miners = random.sample(xrange(nb_nodes), number_of_miners)
+    miners = random.sample(range(nb_nodes), number_of_miners)
 
 
 def create_miner_replicas(neighbourhood_size):
@@ -1195,10 +1194,10 @@ def create_miner_replicas(neighbourhood_size):
     if extra_replicas > 0:
         i = 0
         miners_to_add = []
-        for n in xrange(nb_nodes, nb_nodes + (extra_replicas * number_of_miners)):
-            neighbourhood = random.sample(xrange(nb_nodes), neighbourhood_size)
+        for n in range(nb_nodes, nb_nodes + (extra_replicas * number_of_miners)):
+            neighbourhood = random.sample(range(nb_nodes), neighbourhood_size)
             while neighbourhood.__contains__(n) or neighbourhood.__contains__(miners[i]):
-                neighbourhood = random.sample(xrange(nb_nodes), neighbourhood_size)
+                neighbourhood = random.sample(range(nb_nodes), neighbourhood_size)
             neighbourhood.append(miners[i])
             nodeState[n] = createNode(neighbourhood)
             miners_to_add.append(n)
@@ -1213,7 +1212,7 @@ def create_miner_replicas(neighbourhood_size):
 def create_bad_node():
     global bad_nodes
 
-    bad_nodes = random.sample(xrange(nb_nodes), int((number_of_bad_nodes / 100) * nb_nodes))
+    bad_nodes = random.sample(range(nb_nodes), int((number_of_bad_nodes / 100) * nb_nodes))
 
 
 def configure(config):
@@ -1287,7 +1286,7 @@ def configure(config):
     if number_of_tx_to_gen_per_cycle // nb_nodes == 0:
         nodes_to_gen_tx = []
         for i in range(0, nb_cycles):
-            nodes_to_gen_tx.append(random.sample(xrange(nb_nodes), number_of_tx_to_gen_per_cycle))
+            nodes_to_gen_tx.append(random.sample(range(nb_nodes), number_of_tx_to_gen_per_cycle))
 
     IS_CHURN = config.get('CHURN', False)
     if IS_CHURN:
@@ -1302,7 +1301,7 @@ def configure(config):
 
     try:
         with open(latencyTablePath, 'r') as f:
-            latencyTable = cPickle.load(f)
+            latencyTable = pickle.load(f)
     except:
         latencyTable = None
         latencyValue = int(latencyTablePath)
@@ -1407,7 +1406,7 @@ def get_avg_tx_per_block():
 
 def get_avg_total_sent_msg():
     total_sent = [0] * nb_nodes
-    for node in xrange(nb_nodes):
+    for node in range(nb_nodes):
         for i in range(INV_MSG, MISSING_TX):
             if i == 0 or i == 3:
                 total_sent[node] += nodeState[node][MSGS][i][SENT]
@@ -1518,25 +1517,24 @@ def commits_per_time():
 def wrapup():
     global nodeState
 
-    inv_messages = map(lambda x: nodeState[x][MSGS][INV_MSG], nodeState)
-    getheaders_messages = map(lambda x: nodeState[x][MSGS][GETHEADERS_MSG], nodeState)
-    headers_messages = map(lambda x: nodeState[x][MSGS][HEADERS_MSG], nodeState)
-    getdata_messages = map(lambda x: nodeState[x][MSGS][GETDATA_MSG], nodeState)
-    block_messages = map(lambda x: nodeState[x][MSGS][BLOCK_MSG], nodeState)
-    cmpctblock_messages = map(lambda x: nodeState[x][MSGS][CMPCTBLOCK_MSG], nodeState)
-    getblocktx_messages = map(lambda x: nodeState[x][MSGS][GETBLOCKTXN_MSG], nodeState)
-    blocktx_messages = map(lambda x: nodeState[x][MSGS][BLOCKTXN_MSG], nodeState)
-    tx_messages = map(lambda x: nodeState[x][MSGS][TX_MSG], nodeState)
-    missing_tx = map(lambda x: nodeState[x][MSGS][MISSING_TX], nodeState)
-    all_inv = map(lambda x: nodeState[x][MSGS][ALL_INVS][RECEIVED_INV], nodeState)
-    relevant_inv = map(lambda x: nodeState[x][MSGS][ALL_INVS][RELEVANT_INV], nodeState)
-    all_getdata = map(lambda x: nodeState[x][MSGS][ALL_INVS][RECEIVED_GETDATA], nodeState)
-
-    sum_received_blocks = map(lambda x: nodeState[x][NODE_INV][NODE_INV_RECEIVED_BLOCKS], nodeState)
+    inv_messages = list(map(lambda x: nodeState[x][MSGS][INV_MSG], nodeState))
+    getheaders_messages = list(map(lambda x: nodeState[x][MSGS][GETHEADERS_MSG], nodeState))
+    headers_messages = list(map(lambda x: nodeState[x][MSGS][HEADERS_MSG], nodeState))
+    getdata_messages = list(map(lambda x: nodeState[x][MSGS][GETDATA_MSG], nodeState))
+    block_messages = list(map(lambda x: nodeState[x][MSGS][BLOCK_MSG], nodeState))
+    cmpctblock_messages = list(map(lambda x: nodeState[x][MSGS][CMPCTBLOCK_MSG], nodeState))
+    getblocktx_messages = list(map(lambda x: nodeState[x][MSGS][GETBLOCKTXN_MSG], nodeState))
+    blocktx_messages = list(map(lambda x: nodeState[x][MSGS][BLOCKTXN_MSG], nodeState))
+    tx_messages = list(map(lambda x: nodeState[x][MSGS][TX_MSG], nodeState))
+    missing_tx = list(map(lambda x: nodeState[x][MSGS][MISSING_TX], nodeState))
+    all_inv = list(map(lambda x: nodeState[x][MSGS][ALL_INVS][RECEIVED_INV], nodeState))
+    relevant_inv = list(map(lambda x: nodeState[x][MSGS][ALL_INVS][RELEVANT_INV], nodeState))
+    all_getdata = list(map(lambda x: nodeState[x][MSGS][ALL_INVS][RECEIVED_GETDATA], nodeState))
+    sum_received_blocks = list(map(lambda x: nodeState[x][NODE_INV][NODE_INV_RECEIVED_BLOCKS], nodeState))
     # receivedBlocks = map(lambda x: map(lambda y: (sum_received_blocks[x][y][0], sum_received_blocks[x][y][1],
     #                                              sum_received_blocks[x][y][2], sum_received_blocks[x][y][3],
     #                                              sum_received_blocks[x][y][4], sum_received_blocks[x][y][6]),
-    #                                   xrange(len(sum_received_blocks[x]))), nodeState)
+    #                                   range(len(sum_received_blocks[x]))), nodeState)
 
     # dump data into gnuplot format
     utils.dump_as_gnu_plot([inv_messages, getheaders_messages, headers_messages, getdata_messages, block_messages,
@@ -1708,7 +1706,7 @@ if __name__ == '__main__':
         raise ValueError("Invalid combination of inputs create_new and file_name")
 
     # load configuration file
-    configure(yaml.load(f))
+    yaml.safe_load(f)
     logger.info('Configuration done')
 
     # start simulation

@@ -3,9 +3,10 @@
 # (c) 2012-2017
 
 import math
-from cookielib import logger
+from logging import getLogger
+logger = getLogger(__name__)
 import numpy
-import cPickle
+import pickle
 
 
 def computeCDF(data, precision=1000):
@@ -33,12 +34,12 @@ def dump_as_gnu_plot(data, path, caption, pad=True):
         merge = zip(*data)
 
     writer = open(path, 'w')
-    print>> writer, caption
+    print(caption, file=writer)
 
     for pack in merge:
         strData = str(pack)  # to avoid commas and brackets
         strData = strData[1:-1].replace(',', '\t').replace(' ', '')
-        print>> writer, strData
+        print(strData, file=writer)
 
     writer.close()
 
@@ -61,7 +62,7 @@ def compute_average_of_message(variable_name, variable, dumpPath):
         avg_sent = compute_average(list)
         list = map(lambda x: variable[x][1], range(0, len(variable)))
         avg_received = compute_average(list)
-        print >> f, len(variable), avg_sent, avg_received
+        print(len(variable), avg_sent, avg_received, file=f)
 
 
 def compute_average(data):
@@ -163,20 +164,20 @@ def check_latency_nodes(latencyTable, nbNodes, defaultLatency=None):
     global latencyValue
 
     if latencyTable is None and defaultLatency is not None:
-        print 'WARNING: using constant latency'
+        print('WARNING: using constant latency')
         latencyTable = {n: {m: defaultLatency for m in range(nbNodes)} for n in range(nbNodes)}
         # latencyTable = {n : {m: random.randint(0,defaultLatency)for m in range(nbNodes)} for n in range(nbNodes) }
         return latencyTable
 
     nbNodesAvailable = len(latencyTable)
 
-    latencyList = [l for tmp in latencyTable.itervalues() for l in tmp.values()]
+    latencyList = [l for tmp in latencyTable.values() for l in tmp.values()]
     latencyValue = math.ceil(percentiles(latencyList, percs=[50], paired=False)[0])
 
     if nbNodes > nbNodesAvailable:
         nodesToPopulate = nbNodes - nbNodesAvailable
 
-        nodeIds = range(nbNodes)
+        nodeIds = list(range(nbNodes))
 
         logger.warning('Need to add nodes to latencyTable')
         for node in range(nbNodesAvailable):
@@ -187,8 +188,8 @@ def check_latency_nodes(latencyTable, nbNodes, defaultLatency=None):
             latencyTable[node].pop(node)  # remove itself
         # FIXME: we should also remove some other nodes to be more faithful to the original distribution
 
-        with open('/tmp/latencyTable.obj', 'w') as f:
-            cPickle.dump(latencyTable, f)
+        with open('/tmp/latencyTable.obj', 'wb') as f:
+            pickle.dump(latencyTable, f)
 
     return latencyTable
 
@@ -199,7 +200,7 @@ def copy(org):
     """
     out = dict().fromkeys(org)
 
-    for k, v in org.iteritems():
+    for k, v in org.items():
         try:
             out[k] = v.copy()  # dicts, sets
         except AttributeError:
